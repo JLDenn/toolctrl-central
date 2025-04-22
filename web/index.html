@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+<script src="/js/jquery-3.7.1.min.js" ></script>
+
+<style>
+
+.form-group {
+	margin-top: 0.5em;
+}
+
+</style>
+
+<script>
+function load() {
+	setInterval(function(){
+
+		$.ajax({
+			type: "POST",
+			dataType: "json",
+			url: "/cgi-bin/tools",
+			//data: "action=loadall&id=" + id,
+			complete: function(data) {
+				var json = $.parseJSON(data.responseText);
+				
+				$('#tbname').html("Toolbox " + json.toolbox);
+				
+				var out = "<thead><tr><th scope='col'>ID</th><th scope='col'>Name</th><th scope='col'>State</th></tr></thead><tbody>";
+				
+				$.each(json.tools, function(key, item){
+					out += "<tr><th scope='row'>T" + ("00" + item.id).slice(-3) + "</th><td>" + item.name + "</td><td>" + item.state + "</td><tr>";
+				});
+				
+				out += "</tbody>";
+				$('#content').html(out);
+			},
+			error: function(xhr, status, error){
+				$('#content').html("Connecting...");
+			},
+			timeout: 1000
+		});
+		
+		
+		$.ajax({
+			
+			type: "POST",
+			//dataType: "json",
+			url: "/cgi-bin/tools",
+			data: "action=status",
+			complete: function(data) {
+				$('#connection').html(data.responseText);
+			},
+			error: function(xhr, status, error){
+				$('#connection').html("Unknown");
+			},
+			timeout: 1000
+		});
+
+	}, 1000);
+}
+</script>
+
+<body onload="load()">
+<div class="container text-center">
+<h1>Toolbox Inventory Control</h1>
+
+<h3>Scanner connection:</h3>
+<div style="font-weight: bold" id="connection">Unknown</div><br><br>
+
+
+<h3>Set BLE Toolbox Scanner MAC</h3>
+<form action="/cgi-bin/tools" class="row justify-content-center" method=POST>
+	<input type="hidden" name="action" value="connect" />
+	<div class="col-2">
+	<input name="mac" class="form-control" placeholder="01:45:78:ab:cd:ef" />
+	</div>
+	
+<div class="form-group">	
+	<input type="submit" class="btn btn-primary" value="Connect" />
+</div>
+</form>
+
+<br>
+<h3>Update Inventory</h3>
+<div class="row">
+	<div class="col-3"></div>
+	<div class="col-6">
+		<form class="text-center" action="/cgi-bin/tools" method="POST">
+		<div class="form-group">
+			<div class="input-group">
+				<label class="control-label col-sm-3" for="tid">Tool ID</label>
+				<div class="col-sm-3">
+					<input id="tid" class="form-control" name="tid" placeholder="T###" />
+				</div>
+				&nbsp;(Req'd for add/update/remove)
+			</div>
+		</div>
+		<div class="form-group">
+			<input type="hidden" name="tbid" value="90" />
+			<div class="input-group">
+				<label class="control-label col-sm-3" for="tbid">Toolbox</label>
+				<div class="col-sm-3">
+					<input id="tbid" name="tbid" class="form-control" value="90" disabled />
+				</div>
+				
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="input-group">
+				<label class="control-label col-sm-3" for="tname">Tool Name</label>
+				<div class="col-sm-3">
+					<input id="tname" name="tname" class="form-control" placeholder="3/8 Wrench" />
+				</div>
+				&nbsp;(Req'd for update/add)
+			</div>
+		</div>
+
+		<div class="form-group">
+		
+		
+		<button type="submit" class="btn btn-primary" name="action" value="add">Add</button>
+		<button type="submit" class="btn btn-primary" name="action" value="update">Update</button>
+		<button type="submit" class="btn btn-primary" name="action" value="remove">Remove</button>
+		</div>
+		</form>
+	</div>
+</div>
+
+
+</br>
+<h3>Current Tool Inventory:</h3>
+<h4 id="tbname"></h4>
+<div class="row">
+<div class="col-sm-3"></div>
+<div class="col-sm-6">
+<table id="content" class="table">
+  <thead>
+	<tr><th scope='col'>ID</th><th scope='col'>Name</th><th scope='col'>State</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+</div>
+
+
+
+</body>
+</html>

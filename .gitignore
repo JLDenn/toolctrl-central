@@ -1,0 +1,5 @@
+*.o
+database
+database/*
+datactrl/datactrl
+
